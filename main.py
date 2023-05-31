@@ -1,489 +1,392 @@
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as nb
 from math import sqrt
 
-def nombreElement(nombre, i): # Fonction permettant de se rassurer que la taille du tableau/matrice soit au moins >= 2 avant l'arret de l'enregistrement
-    while((nombre == -1) and (i <= 2)):
-        print("!!!Erreur, vous essayez d'arreter l'enregistrement des valeurs or la taille du tableau est inferieur a 2, veuiller entrer au moins 2 elements avant de marquer l'arret en saisissant '-1'")
-        nombre = int(input("Veuiller entrer la Valeur X{} : ".format(i)))
-        if(nombre == -1):
-            return nombreElement(nombre,i)
-        else:
-            while(nombre < 0):
-                nombre = int(input("Veuillez entrer un nombre positif : "))
-    
-    return nombre
-
-def Verification(nombre): # Fonction permettant de se rassurer qu'aucun nombre negatif excepte -1(qui permet de mettre fin a la recuperation des nombres) ne sera enregistre dans le jeu de donnees
-    while(nombre < 0):
-        if(nombre == -1):
-            return nombre
-        else:
-            nombre = int(input("Veuillez entrer un nombre positif : "))
-    return nombre
-
-def PlusGrandDirect(tableau, nombre): #Fonction permettant de recuperer l'indice d'un quartile dans le tableau des ECC, ou alors son superieur directe
-    for elt in tableau:
-        if(elt >= nombre):
-            return elt
-
-def Taille(tableau): #Fonction permettant de retourner la taille d'un tableau
-    nbre = 0
-    for elt in tableau:
-        nbre += 1
+def verification(nbre): #Fonction permettant de verifier que chaque nombre entré est positif
+    while(nbre<0):
+        nbre = int(input("Veuillez entrer un nombre positif : "))
     return nbre
 
+#-----------------ENSEMBLE DE FONCTIONS REGROUPÉES POUR PERMETTRE LE TEST DE KHI-2-------------------------#
 
-###################  A) Cas des variables discretes  ##################
+nkw = [] #Variable dans laquelle sera conserver la valeur du khi final
 
-def Vdiscrete():
-    M = [[],[]] # simulation d'une matrice de taille 2*n. la liste d'indice 0 represente les valeurs de la variable tandis que la liste d'indice 1 represente les valeurs des effectifs correspondants.
-    nombre = 0
-    i = 1
-    total = 0
-    print("---------------------Cas de variables discretes---------------------")
-    print("\n")
-    print("Veuillez entrer les valeurs de la variable X observee")
-    print("Une fois toutes les valeurs entrees, tapez '-1' pour marquer la fin")
-    print("")
-    
-    while(nombre != -1):
-        nombre = int(input("Valeur X{} : ".format(i)))
-        nombre = Verification(nombre)
-        nombre = nombreElement(nombre,i)
-        M[0].append(nombre)
-        i += 1
-    M[0].remove(-1)
+def LeKhiFinal(tab : list): #Fonction permettant de retourner la valeur du Khi-2
+    somme = 0
 
-    nombre = 0
-    i = 1
-    tailleMatrice = Taille(M[0])
+    for elt in tab:
+        for i in range(len(elt)):
+            somme += elt[i]
+    somme = round((somme),2)
 
-    print("")
-    print("Veuillez a present entrer respectivement les effectifs enregistres pour chaque valeur Xi")
+    print("La valeur du Khi-2 est donc : X2 = ",somme)
 
-    for i in range(tailleMatrice):
-        nombre = int(input("Effectif n{} : ".format(i+1)))
-        while(nombre < 0):
-            nombre = int(input("Veuillez entrer un nombre positif : "))        
-        M[1].append(nombre)
+    nkw.append(somme)
 
-    for elt in M[1]:  #calcul de l'effectif total
-        total += elt
+    return somme
 
-    #       1) Affichage de la matrice     #
-    
-    print("\nSoit a avoir les donnees statistiques suivantes : \n")  
+def TabKhi(tab : list, result : list): #Fonction prenant en paramettre un tableau et le tableau des effectifs attendus correspondant, et retourne le tableau des Khi-2
+    Khi = []
 
-    print("Valeur(X)    : ",end="\t")
-    for elt in M[0]:
-        print(elt,end="\t")
-    
-    print("\n")
-    print("Effectif(ni) : ",end="\t")
+    for i in tab:
+        Khi.append([])
 
-    for elt in M[1]:
-        print(elt,end="\t")
-    
-    print("\n")
-
-    #       2-a) Calcule et affichage des ECC       #
-    
-    T1 = []
-    y = 0
-
-    T1.append(M[1][0])
-
-    for k in range(tailleMatrice-1):
-        T1.append(round((T1[y] + M[1][k+1]),2))
-        y += 1
-
-    print("\nLe tableau des Effectifs Cumules Croissant est : \n")
-    print("T1(ECC)      : ",end="\t")
-    
-    for elt in T1:
-        print(elt,end="\t")
-
-    print("")
-
-    #       2-b) Calcule et affichage des FCC       #
-    T2 = []
-
-    for elt in T1:
-        T2.append(round((elt / total),2))
-
-    print("\nLe tableau des Frequences  Cumulees Croisante est : \n")
-    print("T2(FCC)      : ",end="\t")
-
-    for elt in T2:
-        print(elt,end="\t")
-    
-    print("")
-
-    #       3) Calcule et affichage de toutes les valeurs de la tendance centrale.
-    print("\nValeurs de la tendance centrale : \n")
-    #recherche du mode
-    Max = -1
-    Mode = []
-    for elt in M[1]:
-        if elt >= Max:
-            Max = elt
-    
-    for i in range(tailleMatrice):
-        if M[1][i] == Max:
-            Mode.append(M[0][i])
-    
-
-    #recherche de la moyenne
-    i = 0
-    som = 0
-    for elt in M[0]:
-        som += (elt * M[1][i])
-        i += 1
-
-    Moyenne = round((som / total),2) #Valeur de la moyenne
-
-    #recherche de la mediane
-    n = total / 2
-    indMed = PlusGrandDirect(T1,n)
-    Mediane = -1
-    i = 0
-
-    for elt in T1:
-        if(elt == indMed):
-            Mediane = M[0][i]
-        i += 1
-
-    #recherche des quartiles
-    Q1 = Q3 = -1   
-    Q2 = Mediane
-
-    n1 = total / 4
-    indQ1 = PlusGrandDirect(T1,n1)
-    i = 0
-
-    for elt in T1:
-        if(elt == indQ1):
-            Q1 = M[0][i] #Valeur du premier quartile
-        i += 1
-    
-    n3 = (3*total) / 4
-    indQ3 = PlusGrandDirect(T1,n3)
-    i = 0
-
-    for elt in T1:
-        if(elt == indQ3):
-            Q3 = M[0][i] #Valeur du troisieme quartile
-        i += 1
-
-    print("******************************")
-    print("Mode = ",Mode)
-    print("Moyenne = ",Moyenne)
-    print("Mediane = ",Mediane)
-    print("Q1 = ",Q1)
-    print("Q2 = ",Q2)
-    print("Q3 = ",Q3)
-    print("******************************")
-
-    #       4) Calcule et affichage de toutes les valeurs de dispersion
-    print("\nValeurs de la dispersion: \n")
-    #recherche de la variance
-    R = 0
-    Vtmp = 0
-    for elt in M[1]:
-        Vtmp += (elt * (((M[0][R]) - Moyenne)*((M[0][R]) - Moyenne)))
-        R += 1
-
-    Variance = round((Vtmp / total),2) #Valeur de la Variance
-
-    #recherche de l'ecart-type
-    EcartType = round((sqrt(Variance)),2) #Valeur de l'ecart-type
-
-    #recherche de l'intervalle interquartile
-    EIQ = Q3 - Q1 #Valeur de l'intervalle interquartile
-
-    #recherche de l'etendu
-    etendu = M[0][tailleMatrice-1] - M[0][0] #Valeur de l'etendu
-
-    #recherche du coefficient de variation
-    CV = round((EcartType / Moyenne),2) #Valeur du coefficient de variation
-
-    print("******************************")
-    print("Variance = ",Variance)
-    print("Ecart-type = ",EcartType)
-    print("Ecart interquartile = ",EIQ)
-    print("Etendu = ",etendu)
-    print("Coefficient de variation = ",CV)
-    print("******************************")
-
-##################   B) Cas des variables continues  ##################
-
-def Vcontinue():
-    M1 = [[],[],[]] # simulation d'une matrice de taille 3*n. la liste d'indice 0 represente la borne inferieur de l'intervalle, la liste d'indice 1 represente la borne superieure, et la liste d'indice 2 represente les effectifs correspondants
-    inf = 0
-    i = 1
-    print("---------------------Cas de variables continues---------------------")
-    print("\n")
-    print("Veuillez entrer les valeurs de la variable X observee")
-    print("Une fois toutes les valeurs entrees, tapez '-1' pour marquer la fin")
-    print("NB: Le remplissage se fera directement par classe, de la borne inferieur vers la borne superieur\n")
-    print("A SAVOIR : l'arret du remplissage des donnees ne peut etre effectuee lors de la recuperation de la borne superieur, en d'autres termes, une fois la borne inferieur saisi, il est obligatoire d'entrer egalement la borne superieur avant de saisir '-1' pour signaler l'arret de la recuperation\n")
-
-    while(inf != -1):
-        inf = int(input("Borne inferieur {} : ".format(i)))
-        inf = Verification(inf)
-        inf = nombreElement(inf,i)
-        if(inf != -1):
-            sup = int(input("Borne superieur {} : ".format(i)))
-            while(sup < 0):
-                sup = int(input("Veuillez entrer un nombre positif : "))
-            
-        i += 1
-
-        M1[0].append(inf) #Enregistrement de la borne inferieur
-        M1[1].append(sup) #Enregistrement de la borne superieur
-
-    M1[0].remove(-1)
-    tailleMatrice2 = Taille(M1[0])
-    M1[1].pop(tailleMatrice2-1)
-    nombre = 0
-    print("")
-    print("Veuillez a present entrer respectivement les effectifs enregistres pour chaque intervale : \n")
-    for i in range(tailleMatrice2):
-        nombre = int(input("Effectif n{} : ".format(i+1)))
-        while(nombre < 0):
-            nombre = int(input("Veuillez entrer un nombre positif : "))        
-        M1[2].append(nombre)
+    for i in range(len(tab)):
+        for j in range(len(tab[0])):
+            khi = round((((tab[i][j] - result[i][j])**2) / (result[i][j])),2)
+            Khi[i].append(khi)
         
-
-    #       1) Affichage de la matrice     #
-    
-    print("\nSoit a avoir les donnees statistiques suivantes : \n")  
-
-    print("Borne inferieur : ",end="\t")
-    for elt in M1[0]:
-        print(elt,end="\t")
-    
-    print("\n")
-    print("Borne superieur : ",end="\t")
-
-    for elt in M1[1]:
-        print(elt,end="\t")
-
-    print("\n")
-    print("Effectifs (ni)  : ",end="\t")
-
-    for elt in M1[2]:
-        print(elt,end="\t")    
-    print("\n")
-
-    #       2-a) Calcule et affichage des densites      #
-    T3 = []
-    i = 0
-    for elt in M1[2]:
-        tmp = M1[1][i] - M1[0][i]
-        T3.append(round((elt / tmp),2))
-        i += 1
-    
-    print("Le tableau des densites est : \n")
-    print("T3(densites)    : ",end="\t")
-    for elt in T3:
-        print(elt,end="\t")
-    print("")
-
-
-    #       2-b) Calcule et affichage des ECC     #
-
-    T4 = []
-    y = 0
-
-    T4.append(M1[2][0])
-
-    for k in range(tailleMatrice2-1):
-        T4.append(round((T4[y] + M1[2][k+1]),2))
-        y += 1
-
-    print("\nLe tableau des Effectifs Cumules Croissant est : \n")
-    print("T4(ECC)         : ",end="\t")
-    
-    for elt in T4:
-        print(elt,end="\t")
+    print("\nTableau des Khi-2\n")
 
     print("")
+    for i in range(len(Khi)):
+        print("Ligne {} : ".format(i+1),end="\t")
+        for j in Khi[i]:
+            print(j,end="\t")
+        print("\n")
 
-    #       2-b) Calcule et affichage des FCC     #
+    LeKhiFinal(Khi)
+
+def TabEff(tab : list): #Fonction prenant en paramettre un tableau avec des effectifs observés, et retournant un tableau des effectifs attendus
+    totalL = []
+    totalC = []
+    result = []
     total = 0
-    for elt in M1[2]:
-        total += elt
+    tmp = 0  
 
-    T5 = []
-
-    for elt in T4:
-        T5.append(round((elt / total),2))
-
-    print("\nLe tableau des Frequences  Cumulees Croisante est : \n")
-    print("T5(FCC)         : ",end="\t")
-
-    for elt in T5:
-        print(elt,end="\t")
+    for G_elt in tab:
+        for elt in G_elt:
+            total += elt #nombre total d'individu
     
-    print("")    
+    for G_elt in tab:
+        for elt in G_elt:
+            tmp += elt
+        totalL.append(tmp)#nombre total de chaque ligne
+        tmp = 0
 
+    tmp = 0
+    k = 0
 
-    #       3) Calcule et affichage de toutes les valeurs de la tendance centrale.      #
+    for nkw in range(len(tab[0])):
+        for G_elt in tab:
+            tmp += G_elt[k]
+        totalC.append(tmp) #nombre total de colonne
+        k += 1
+        tmp = 0
 
-    print("\nValeurs de la tendance centrale : \n")
-    #recherche de la classe modale
-    Dmax = -1
-    for elt in T3:
-        if(elt >= Dmax):
-            Dmax = elt
+    for i in tab:
+        result.append([])
+
+    for i in range(len(totalL)):
+        for j in range(len(totalC)): 
+            Eij = round(((totalC[j] * totalL[i]) / total),2)
+            result[i].append(Eij)
     
+    print("\nTableau des effectifs attendus:\n")
+    print("")
+    for i in range(len(result)):
+        print("Ligne {} : ".format(i+1),end="\t")
+        for j in result[i]:
+            print(j,end="\t")
+        print("\n")
+        
+    return TabKhi(tab, result)
+        
+def Khi2(tab : list):
+    print("")
+    print('|*',end="Application de la loi de Khy-2".center(70,'-')+"*|")
+    print("")
+
+    return TabEff(tab)
+
+#-----------------ENSEMBLE DE FONCTIONS REGROUPÉES POUR PERMETTRE LE TEST STUDENT--------------------------#
+
+def moyenneX(tab : list): #Fonction retournant la moyenne en x
+    somme = 0
+    taille = 0
+
+    for elt in tab[0]:
+        somme += elt
+        taille += 1
+
+    return (somme / taille)
+
+def moyenneY(tab : list): #Fonction retournant la moyenne en y
+    somme = 0
+    taille = 0
+
+    for elt in tab[1]:
+        somme += elt
+        taille += 1
+
+    return (somme / taille)
+
+def aEstim(tab : list): #Fonction retournant la valeur de a chapeau (a estimé)
+    num = 0
+    denum = 0
     i = 0
-    pos = 0 #pos ici representera la position de la densite maximal
-    trouve = False
-    for elt in T3:
-        if(elt == Dmax):
-            trouve = True
-            aClassMod = M1[0][i]
-            bClassMod = M1[1][i]
-        if(trouve == False):
-            pos += 1
+    
+    x = moyenneX(tab)
+    y = moyenneY(tab)
 
+    for elt in tab[0]:
+        num += (elt - x)*(tab[1][i] - y)
         i += 1
 
-    #recherche du mode
+    for elt in tab[0]:
+        denum += (elt - x)**2
 
-    ampli = M1[1][pos] - M1[0][pos]
-    d1 = M1[2][pos] - M1[2][pos-1]
-    d2 = M1[2][pos] - M1[2][pos+1]
+    return (num / denum)
 
-    Mode = round((M1[0][pos] + ((d1 / (d1 + d2))*ampli)),2)
+def varianceErr(tab : list): #Fonction retournant la variance estimée de l'erreur
+    SomY_Ychap = 0
+    k = 0
+    Xbar = moyenneX(tab)
+    Ybar = moyenneY(tab)
+    aChap = aEstim(tab)
+
+    bChap = Ybar - (aChap * Xbar)
+
+    for i in tab[0]:
+        SomY_Ychap += (tab[1][k] - ((aChap * i) + bChap))**2
+        k += 1
     
+    return (SomY_Ychap / (k - 2))
 
-    #recherche de la moyenne
+def varianceX(tab : list): #Fonction retournant la variance estimée
+    somX_XbarCarre = 0
+    x = moyenneX(tab)
+
+    for elt in tab[0]:
+        somX_XbarCarre += (elt - x)**2
+
+    varErr = varianceErr(tab)
+
+    return (varErr / somX_XbarCarre)
+
+def degreLib(tab : list): #Fonction retournant le degres de liberte 
     i = 0
-    som = 0
-    for elt in M1[2]:
-        centre = (M1[0][i] + M1[1][i]) / 2
-        som += (elt * centre)
+    for elt in tab[0]:
         i += 1
-
-    Moyenne = round((som / total),2) #Valeur de la moyenne
-
-    #recherche de la mediane
-    n = (total * 50) / 100
-    indMed = PlusGrandDirect(T4,n)
     
-    trouve = False
-    i = 0
-    pos = 0
+    return (i-2)
 
-    for elt in T4:
-        if(elt == indMed):
-            trouve = True
-        if(trouve == False):
-            pos += 1
+def Student(tab : list):
+    print("")
+    print('|*',end="Application de la loi de Student".center(50,'-')+"*|")
+    print("")
 
-    Mediane = round(((((n - T4[pos-1]) * (M1[1][pos] - M1[0][pos])) / (T4[pos] - T4[pos-1])) + M1[0][pos]),2)
+    studTab = [12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.178, 2.16, 2.14, 2.13, 2.11, 2.109, 2.10, 2.09, 2.08, 2.079, 2.073, 2.068, 2.063, 2.059, 2.055, 2.051, 2.048, 2.045, 2.042]
+    Xbar = moyenneX(tab)
+    Ybar = moyenneY(tab)
+    aChap = round((aEstim(tab)),2)
+    ddl = degreLib(tab)
 
-    #recherche des quartiles
-    
-    n1 = (total * 25) / 100
-    indQ1 = PlusGrandDirect(T4,n1)
-    
-    trouve = False
-    i = 0
-    pos = 0
+    bChap = round((Ybar - (aChap * Xbar)),2)
 
-    for elt in T4:
-        if(elt == indQ1):
-            trouve = True
-        if(trouve == False):
-            pos += 1
-    if(pos == 0):
-        Q1 = round(M1[0][pos],2)
+    print("\nD'apres les données dans notre tableau, nous avons l'équation estimée : Y^ = {}X + {}\n".format(aChap, bChap))
+
+    ecartX = sqrt(varianceX(tab))
+
+    if aChap < 0:
+        valAbsA = (-1)*aChap
     else:
-        Q1 = round(((((n1 - T4[pos-1]) * (M1[1][pos] - M1[0][pos])) / (T4[pos] - T4[pos-1])) + M1[0][pos]),2) #premier quartile
-    Q2 = Mediane # deuxieme quartile
+        valAbsA = aChap
 
-    n3 = (total * 75) / 100
-    indQ3 = PlusGrandDirect(T4,n3)
+    tEtoile = round((valAbsA / ecartX),2) #valeur du test de student calculée
+
+    print("test de student calculé : T* = ",tEtoile)
+    print("test de student tabul   : Tt = ",studTab[ddl-1])
+
+    print("\nInterpretation : ",end="")
+
+    if(tEtoile > studTab[ddl-1]):
+        print("La valeur du student calculée ({}) etant superieur a la valeur du student tabul ({}), nous pouvons donc dire que la variable exogène est significative et contribu a l'explication de la variable endogène. Ainsi, on rejette donc l'hypothese nulle (Ho) et on conclu que les variables etudées ne sont pas independantes\n".format(tEtoile,studTab[ddl-1]))
+    else:
+        print("La valeur du student calculée ({}) etant inferieur a la valeur du student tabul ({}), nous pouvons donc dire que la variable exogène n'est pas significative et ne contribu pas a l'explication de la variable endogène. Ainsi, on admet donc l'hypothese nulle (Ho) et on conclu que les variables etudées sont independantes\n".format(tEtoile,studTab[ddl-1]))
+
+#-----------------ENSEMBLE DE FONCTIONS REGROUPÉES POUR PERMETTRE LE TEST DE FISHER--------------------------#
+
+def moyenneTotal(tab : list): #Fonction permettant de retourner la moyenne total ( X bar bar)
+    somme = 0
+    nkw = 0
+    for elt in tab[0]:
+        somme += elt + tab[1][nkw]
+        nkw += 1
     
-    trouve = False
-    i = 0
-    pos = 0
+    return (somme / (nkw*2))
 
-    for elt in T4:
-        if(elt == indQ3):
-            trouve = True
-        if(trouve == False):
-            pos += 1
+def SCT(tab : list): #Fonction permettant de retourner la somme des carres totals
+    somme = 0
+    nkw = 0
 
-    Q3 = round(((((n3 - T4[pos-1]) * (M1[1][pos] - M1[0][pos])) / (T4[pos] - T4[pos-1])) + M1[0][pos]),2) #troisieme quartile   
+    moyT = moyenneTotal(tab)
+
+    for elt in tab[0]:
+        somme += (((elt - moyT)**2) + ((tab[1][nkw] - moyT)**2))
+        nkw += 1
+    
+    return somme
+
+def SCintra(tab : list): #Fonction permettant de retourner la somme des carres intraclasse
+    somme = 0
+    nkw = 0
+    xbar = moyenneX(tab)
+    ybar = moyenneY(tab)
+
+    for elt in tab[0]:
+        somme += (((elt - xbar)**2) + ((tab[1][nkw] - ybar)**2))
+        nkw += 1
+    
+    return somme
+
+def SCinter(tab : list): #Fonction permettant de retourner la somme des carres interclasse
+    somme = 0
+    xbar = moyenneX(tab)
+    ybar = moyenneY(tab)
+    T = moyenneTotal(tab)
+
+    for elt in tab[0]:
+        somme += ((xbar - T)**2) + ((ybar - T)**2)
+    
+    return somme
+
+def degreLibFish(tab : list): #Fonction retournant le degres de liberte
+    m = 0
+
+    for elt in tab[0]:
+        m += 1
+    
+    return ((m*2)-1)
+
+def degreLibInter(tab : list): #Fonction retournant le degres de liberte interclasse
+    return (2-1)
+
+def degreLibIntra(tab : list): #Fonction retournant le degres de liberte intraclasse
+    somme = 0
+    
+    for elt in tab[0]:
+        somme += 1 
+
+    return (2 * (somme -1))
+
+def Fisher(tab : list):
+    print("")
+    print('|*',end="Application de la loi de Fisher".center(50,'-')+"*|")
+    print("")
+
+    tabDeCor = [161, 18.5, 10.1, 7.71, 6.61, 5.99, 5.59, 5.32, 5.12, 4.96, 4.84, 4.75, 4.67, 4.60, 4.54, 4.49, 4.45, 4.41, 4.38, 4.35, 4.33, 4.30, 4.28, 4.26]
+    xbar = moyenneX(tab)
+    ybar = moyenneY(tab)
+
+    sct = SCT(tab)
+    scinter = SCinter(tab)
+    scintra = SCintra(tab)
+    ddl = degreLibFish(tab)
+    ddl_inter = degreLibInter(tab)
+    ddl_intra = degreLibIntra(tab)
+
+    F = round(((scinter / ddl_inter) / (scintra / ddl_intra)),2)
+    valCritique = tabDeCor[ddl_intra-1] - 1
+    
+    print("\ntest de Fisher : F = {}\nValeur critique : Vc = {}\n".format(F,valCritique))
 
 
-    print("******************************")
-    print("Classe modale = [{} ; {}[ ".format(aClassMod,bClassMod))
-    print("Mode = ",Mode)
-    print("Moyenne = ",Moyenne)
-    print("Mediane = ",Mediane)
-    print("Q1 = ",Q1)
-    print("Q2 = ",Q2)
-    print("Q3 = ",Q3)
-    print("******************************")
+    print("\nInterpretion : ",end="")
 
-
-    #       4) Calcule et affichage de toutes les valeurs de dispersion
-
-    print("\nValeurs de la dispersion: \n")
-    #recherche de la variance
-    R = 0
-    Vtmp = 0
-    for elt in M1[2]:
-        centre = (M1[0][R] + M1[1][R]) / 2
-        Vtmp += (((centre - Moyenne) * (centre - Moyenne)) * M1[2][R])
-        R += 1
-    #carMoy = Moyenne * Moyenne
-    Variance = round((Vtmp/total),2) #Valeur de la Variance
-
-    #recherche de l'ecart-type
-    EcartType = round((sqrt(Variance)),2) #Valeur de l'ecart-type
-
-    #recherche de l'intervalle interquartile
-    EIQ = Q3 - Q1 #Valeur de l'intervalle interquartile
-
-    #recherche de l'etendu
-    etendu = M1[1][tailleMatrice2-1] - M1[0][0] #Valeur de l'etendu
-
-    #recherche du coefficient de variation
-    CV = round(((EcartType / Moyenne)),2) #Valeur du coefficient de variation
-
-    print("******************************")
-    print("Variance = ",Variance)
-    print("Ecart-type = ",EcartType)
-    print("Ecart interquartile = ",EIQ)
-    print("Etendu = ",etendu)
-    print("Coefficient de variation = ",CV)
-    print("******************************")
-
-    print("\nFin du programme...\n")
-
-##################   C) MENU    #################
-
+    if(F > valCritique):
+        print("la valeur de F ({}) etant superieur a la valeur de Vc ({}), nous pouvons donc dire que le test est significatif. Ainsi, on rejette donc l'hypothese nulle (Ho) et on conclu que les variables etudiées ne sont pas independantes".format(F, valCritique))
+    else:
+        print("la valeur de F ({}) etant inferieur a la valeur de Vc ({}), nous pouvons donc dire que le test n'est pas significatif. Ainsi, on admet donc l'hypothese nulle et on conclu que les variables etudiées sont independantes".format(F, valCritique))
+ 
 def menu():
     print("")
-    print("********************* BIENVENU A VOUS *********************")
+    print("BIENVENU A VOUS".center(60,'*'))
     print("")
-    print("Voulez-vous realiser une etude : ")
-    print("\t1) Sur variable discrete ?")
-    print("\t2) Sur variable continue ?")
     
-    choix = int(input("Choix : "))
-    while((choix != 1) and (choix != 2)):
-        choix = int(input("Veuillez choisir un nombre entre 1 et 2 selon leur correspondance : "))
-    
-    if(choix == 1):
-        Vdiscrete()
-    else:
-        Vcontinue()
+    print("Soit a realiser une etude statistique en utilisant les lois de Khi-2, Student, et Fisher\n")
+    l = verification(int(input("Veuillez entrer le nombre de ligne de votre tableau : ")))
+    c = verification(int(input("Veuillez entrer le nombre de colonne de votre tableau : ")))
 
-menu()
+    M = []
+    choix = -1
+
+    for i in range(l):
+        M.append([])
+
+    for i in range(l):
+        for j in range(c):
+            nbre = verification(int(input("Element [{}][{}] : ".format((i+1),(j+1)))))
+            M[i].append(nbre)
+        print("")
+
+        
+    print("Nous avons donc le tableau : \n")
+
+    for i in range(l):
+        print("Ligne {} : ".format((i+1)),end="\t")
+        for j in range(c):
+            print(M[i][j],end="\t")
+        print("\n")
+
+    while(choix != 0):
+
+        print("Veillez choisir une option : ")
+        print("\t0) Quitter")
+        print("\t1) Réaliser le test du Khi-2   ?")
+        print("\t2) Réaliser le test de Student ?")
+        print("\t3) Réaliser le test de Fisher  ?")
+
+        choix = int(input("\nChoix : "))
+
+        while(choix != 0 and choix != 1 and choix != 2 and choix != 3):
+            choix = int(input("Veuillez choisir '1', '2', ou '3' selon leur correspondance : "))
+
+        if(choix == 1):
+            Khi2(M)
+            D = (l-1)*(c-1) #Degres de liberte
+            Corres = [3.84, 5.99, 7.82, 9.49, 11.07, 12.59, 14.06, 15.50, 16.91, 18.30, 19.67, 21.02, 22.36, 23.68, 24.99, 26.29, 27.58, 28.86, 30.14, 31.41, 32.67, 33.92, 35.17, 36.41, 37.65, 38.88, 40.11, 41.33, 42.55, 43.77]
+            print("\nInterpretation : ",end="")
+            if(nkw[0] <= Corres[D-1]):
+                print("La valeur du khi-2 ({}) etant inferieur à la correspondance du degré de liberté ({}), nous pouvons donc dire que le test n'est pas significatif. Ainsi, on admet donc l'hypothese nulle et on conclu que les variables etudiées sont independantes".format(nkw[0], Corres[D-1]))
+                print("")
+            else:
+                print("La valeur du khi-2 ({}) etant superieur à la correspondance du degré de liberté ({}), nous pouvons donc dire que le test est significatif. Ainsi, on rejette donc l'hypothese nulle et on conclu que les variables etudiées ne sont pas independantes".format(nkw[0], Corres[D-1]))   
+                print("")   
+    
+        elif(choix == 2):
+            Student(M)
+
+        elif(choix == 3):
+            Fisher(M)
+
+        else:
+            print("\nFin du programme...\n")
+            return 
+
+        cordoX = []
+        cordoY = []
+        cordo  = []
+
+        for i in M[0]:
+            cordoX.append(i)
+        for i in M[1]:
+            cordoY.append(i)
+
+        cordo.append(cordoX)
+        cordo.append(cordoY)
+
+        for i in range(len(cordo[0])):
+            x = cordo[0][i]
+            y = cordo[1][i]
+            plt.scatter(x,y, marker='o', color='b')
+
+
+        plt.xlabel("X")
+        plt.ylabel("Y")
+        plt.title("Nuage de points")
+        plt.grid(True)
+        plt.show()    
+
+menu() #Appelle de la fonction principale
